@@ -87,7 +87,10 @@ func main() {
 				season := jellyfin.Season{
 					SeasonNumber: v.Season,
 				}
-				season.MakeNfo(path.Join(seasonFolder, "season.nfo"))
+				nfoPath := path.Join(seasonFolder, "season.nfo")
+				if _, err := os.Stat(nfoPath); err == nil {
+					season.MakeNfo(nfoPath)
+				}
 			}
 
 			processEpisode(client, clientConfig, stremioPackagePath, seriesBaseFolder, seasonFolder, v, *manifest)
