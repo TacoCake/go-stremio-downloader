@@ -103,7 +103,8 @@ func processEpisode(client *torrent.Client, clientConfig *torrent.ClientConfig, 
 	// Get Stream Manifest
 	streamManifest, err := stremio.LoadSeriesStream(path.Join(*stremioPackagePath, "stream", "series", fmt.Sprintf("%s.json", v.Id)))
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Failed to load stream manifest for %s: %v", v.Id, err)
+		return
 	}
 	if len(streamManifest.Streams) != 1 {
 		log.Fatal(fmt.Errorf("Expected exactly one stream in manifest for %s", v.Id))
