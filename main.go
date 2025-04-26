@@ -88,7 +88,7 @@ func main() {
 					SeasonNumber: v.Season,
 				}
 				nfoPath := path.Join(seasonFolder, "season.nfo")
-				if _, err := os.Stat(nfoPath); err == nil {
+				if _, err := os.Stat(nfoPath); err != nil {
 					season.MakeNfo(nfoPath)
 				}
 			}
