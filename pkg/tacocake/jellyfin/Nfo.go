@@ -6,10 +6,11 @@ import (
 )
 
 type Episode struct {
-	Season  int    `xml:"season"`
-	Episode int    `xml:"episode"`
-	Title   string `xml:"title,omitempty"`
-	Plot    string `xml:"plot,omitempty"`
+	Season      int    `xml:"season"`
+	Episode     int    `xml:"episode"`
+	Title       string `xml:"title,omitempty"`
+	Plot        string `xml:"plot,omitempty"`
+	TorrentHash string `xml:"torrentHash,omitempty"` // Non-jellyfin field
 }
 
 type Season struct {
@@ -56,7 +57,11 @@ func (s *Season) MakeNfo(nfoPath string) error {
 	return nil
 }
 func (e *Episode) MakeNfo(nfoPath string) error {
-	xmlData, err := xml.MarshalIndent(e, "", "  ")
+	tmp := struct {
+		Episode
+		XMLName struct{} `xml:"episode"`
+	}{Episode: *e}
+	xmlData, err := xml.MarshalIndent(tmp, "", "  ")
 	if err != nil {
 		return err
 	}
