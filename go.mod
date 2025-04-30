@@ -1,4 +1,4 @@
-module tacocake/one_pace
+module tacocake/go-stremio-downloader
 
 go 1.24.2
 

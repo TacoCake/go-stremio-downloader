@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 	"path"
-	"tacocake/one_pace/pkg/tacocake/torrenthelper"
+	"tacocake/go-stremio-downloader/pkg/tacocake/torrenthelper"
 
 	"github.com/anacrolix/torrent"
 )

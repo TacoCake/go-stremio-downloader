@@ -10,8 +10,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"tacocake/one_pace/pkg/tacocake/jellyfin"
-	"tacocake/one_pace/pkg/tacocake/stremio"
+	"tacocake/go-stremio-downloader/pkg/tacocake/jellyfin"
+	"tacocake/go-stremio-downloader/pkg/tacocake/stremio"
 
 	"github.com/anacrolix/torrent"
 )
@@ -95,7 +95,6 @@ func main() {
 
 			processEpisode(client, clientConfig, stremioPackagePath, seriesBaseFolder, seasonFolder, v, *manifest)
 		}
-		continue
 	}
 }
 
