@@ -3,6 +3,8 @@ A simple go program to download Stremio series from a given package.
 
 ## Usage
 
+As of now, the only platform tested was Linux.
+
 To use the downloader, you need to provide the path to the package and the output directory where the files will be saved.
 > **Note**: The output directory is a _prefix_, individual series will be saved in subdirectories with of their respective names.
 
