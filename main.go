@@ -77,9 +77,12 @@ func main() {
 		})
 
 		// Prep seasons
+		markFiles := make([]string, 0)
+		seasonFolders := make(map[int]string)
 		for _, v := range manifest.Meta.Videos {
 			seasonFolderName := fmt.Sprintf("Season %d", v.Season)
 			seasonFolder := path.Join(seriesBaseFolder, seasonFolderName)
+			seasonFolders[v.Season] = seasonFolder
 			if v.Episode == 1 {
 				// mkdir season dir
 				os.MkdirAll(seasonFolder, 0775)
@@ -93,20 +96,51 @@ func main() {
 				}
 			}
 
-			processEpisode(client, clientConfig, stremioPackagePath, seriesBaseFolder, seasonFolder, v, *manifest)
+			markFiles = append(markFiles, processEpisode(client, clientConfig, stremioPackagePath, seriesBaseFolder, seasonFolder, v, *manifest))
+		}
+
+		for _, seasonFolder := range seasonFolders {
+			// loop all files with .downloaded in seasonFolder
+			files, err := os.ReadDir(seasonFolder)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			for _, file := range files {
+				if !strings.HasSuffix(file.Name(), ".downloaded") {
+					continue
+				}
+
+				// check if in list of markFiles
+				found := false
+				for _, markFile := range markFiles {
+					if strings.HasSuffix(markFile, file.Name()) {
+						found = true
+						break
+					}
+				}
+
+				// if not found, delete
+				if found {
+					continue
+				}
+
+				p := path.Join(seasonFolder, file.Name())
+				os.Remove(p)
+			}
 		}
 	}
 }
 
-func processEpisode(client *torrent.Client, clientConfig *torrent.ClientConfig, stremioPackagePath *string, seriesBaseFolder string, seasonFolder string, v stremio.StremioVideo, manifest stremio.StremioSeriesManifest) {
+func processEpisode(client *torrent.Client, clientConfig *torrent.ClientConfig, stremioPackagePath *string, seriesBaseFolder string, seasonFolder string, v stremio.StremioVideo, manifest stremio.StremioSeriesManifest) string {
 	// Get Stream Manifest
 	streamManifest, err := stremio.LoadSeriesStream(path.Join(*stremioPackagePath, "stream", "series", fmt.Sprintf("%s.json", v.Id)))
 	if err != nil {
 		log.Printf("Failed to load stream manifest for %s: %v", v.Id, err)
-		return
+		return ""
 	}
 	if len(streamManifest.Streams) != 1 {
-		log.Fatal(fmt.Errorf("Expected exactly one stream in manifest for %s", v.Id))
+		log.Fatal(fmt.Errorf("expected exactly one stream in manifest for %s", v.Id))
 	}
 
 	// Get Stream
@@ -114,7 +148,7 @@ func processEpisode(client *torrent.Client, clientConfig *torrent.ClientConfig, 
 	markFile := path.Join(seasonFolder, fmt.Sprintf(".%s_%d.downloaded", episodeStream.InfoHash, episodeStream.FileIdx))
 	if _, err := os.Stat(markFile); err == nil {
 		log.Printf("Skipping downloaded episode S%02dE%02d\n", v.Season, v.Episode)
-		return
+		return markFile
 	}
 
 	torrentFile, err := episodeStream.DownloadEpisode(client, seasonFolder)
@@ -126,7 +160,7 @@ func processEpisode(client *torrent.Client, clientConfig *torrent.ClientConfig, 
 	}()
 	if err != nil {
 		log.Printf("Error downloading episode %d for season %d: %v\n", v.Episode, v.Season, err)
-		return
+		return ""
 	}
 
 	// Rename file to match season and episode number
@@ -159,4 +193,5 @@ func processEpisode(client *torrent.Client, clientConfig *torrent.ClientConfig, 
 
 	// Add file to mark downloaded hash
 	os.WriteFile(markFile, []byte{}, 0755)
+	return markFile
 }
